@@ -116,10 +116,10 @@
         
         <!-- Input Display Field (Read-only to prevent OS Keyboard popup) -->
         <div class="relative flex items-center">
-          <div id="input-display" class="w-full bg-white border-2 border-indigo-400 rounded-xl py-2 px-4 text-right text-2xl sm:text-3xl font-black text-slate-800 shadow-sm min-h-[50px] flex items-center justify-end tracking-wide">
+          <div id="input-display" class="w-full bg-white border-2 border-indigo-400 rounded-xl py-2 pl-4 pr-12 text-right text-2xl sm:text-3xl font-black text-slate-800 shadow-sm min-h-[50px] flex items-center justify-end tracking-wide">
             0
           </div>
-          <span class="absolute right-3 text-lg font-bold text-slate-400 pointer-events-none">원</span>
+          <span class="absolute right-4 text-base sm:text-lg font-bold text-slate-500 pointer-events-none select-none">원</span>
         </div>
 
         <!-- On-screen Numpad Buttons (Compact 2-Row & Grid Layout) -->
@@ -316,7 +316,7 @@
       selectedItems.sort((a, b) => b.value - a.value);
 
       // Render money elements
-      selectedItems.forEach((item, index) => {
+      selectedItems.forEach((item) => {
         const wrapper = document.createElement("div");
         
         if (item.type === 'bill') {
@@ -376,7 +376,7 @@
 
         speakText(`정답입니다! 모두 ${verbalKorean} 입니다.`);
 
-        // Auto transition after 2.5 seconds
+        // Auto transition after 2.8 seconds
         setTimeout(generateQuestion, 2800);
       } else {
         resultMsg.className = "text-center font-extrabold text-sm text-rose-600 flex items-center justify-center gap-1";
