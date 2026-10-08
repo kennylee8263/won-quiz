@@ -2,231 +2,289 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>한국 돈 세기 퀴즈</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>한국 돈 세기 퀴즈 - 숫자 패드 지원</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <style>
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
     * {
-      box-sizing: border-box;
       font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-    }
-    body {
-      background-color: #f4f6f8;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-      padding: 20px;
-    }
-    .card {
-      background: #ffffff;
-      padding: 30px;
-      border-radius: 16px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-      max-width: 650px;
-      width: 100%;
-      text-align: center;
-    }
-    h1 {
-      margin-top: 0;
-      color: #333;
-      font-size: 1.6rem;
+      user-select: none;
+      -webkit-user-select: none;
     }
 
-    /* 난이도 선택 버튼 */
-    .difficulty-container {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 20px;
+    /* Custom visual styles for bills and coins */
+    .bill-card {
+      position: relative;
+      transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12), inset 0 0 0 1px rgba(255, 255, 255, 0.2);
     }
-    .diff-btn {
-      padding: 8px 16px;
-      font-size: 0.95rem;
-      border: 2px solid #1976d2;
-      background-color: #fff;
-      color: #1976d2;
-      border-radius: 20px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: all 0.2s;
-    }
-    .diff-btn.active {
-      background-color: #1976d2;
-      color: white;
+    .bill-card:hover {
+      transform: translateY(-3px) scale(1.03);
     }
 
-    .money-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      justify-content: center;
-      align-items: center;
-      min-height: 220px;
-      padding: 20px;
-      background: #fafafa;
-      border: 2px dashed #e0e0e0;
-      border-radius: 12px;
-      margin-bottom: 20px;
-    }
+    /* Bill Color Gradients */
+    .b-50000 { background: linear-gradient(135deg, #fcd34d 0%, #f59e0b 100%); border: 2px solid #d97706; color: #451a03; }
+    .b-10000 { background: linear-gradient(135deg, #4ade80 0%, #16a34a 100%); border: 2px solid #15803d; color: #052e16; }
+    .b-5000  { background: linear-gradient(135deg, #fb923c 0%, #ea580c 100%); border: 2px solid #c2410c; color: #431407; }
+    .b-1000  { background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%); border: 2px solid #1d4ed8; color: #172554; }
 
-    /* 지폐 스타일 */
-    .bill {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      width: 110px;
-      height: 55px;
-      border-radius: 6px;
-      color: #fff;
-      font-weight: bold;
-      font-size: 0.9rem;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-    }
-    .b-50000 { background-color: #f0ac00; color: #222; }
-    .b-10000 { background-color: #2e7d32; }
-    .b-5000  { background-color: #d84315; }
-    .b-1000  { background-color: #1565c0; }
-
-    /* 동전 스타일 */
-    .coin {
-      display: flex;
-      justify-content: center;
-      align-items: center;
+    /* Coin 3D metallic effect */
+    .coin-card {
       border-radius: 50%;
-      font-weight: bold;
-      box-shadow: inset -2px -2px 4px rgba(0,0,0,0.2), 0 2px 4px rgba(0,0,0,0.15);
-    }
-    .c-500 { width: 52px; height: 52px; background: #cfd8dc; color: #37474f; font-size: 0.85rem; }
-    .c-100 { width: 46px; height: 46px; background: #cfd8dc; color: #37474f; font-size: 0.8rem; }
-    .c-50  { width: 40px; height: 40px; background: #cfd8dc; color: #37474f; font-size: 0.75rem; }
-    .c-10  { width: 34px; height: 34px; background: #d7ccc8; color: #4e342e; font-size: 0.7rem; }
-
-    .input-section {
       display: flex;
-      gap: 10px;
+      align-items: center;
       justify-content: center;
-      margin-bottom: 15px;
+      font-weight: 800;
+      box-shadow: 
+        inset 2px 2px 4px rgba(255, 255, 255, 0.8),
+        inset -3px -3px 6px rgba(0, 0, 0, 0.3),
+        0 4px 8px rgba(0, 0, 0, 0.2);
+      transition: all 0.2s ease;
     }
-    input[type="number"] {
-      padding: 12px;
-      font-size: 1.1rem;
-      width: 180px;
-      border: 2px solid #ddd;
-      border-radius: 8px;
-      text-align: right;
-      outline: none;
-    }
-    input[type="number"]:focus {
-      border-color: #1976d2;
-    }
-    .action-btn {
-      padding: 12px 20px;
-      font-size: 1rem;
-      font-weight: bold;
-      color: white;
-      background-color: #1976d2;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
-    .action-btn:hover {
-      background-color: #1565c0;
+    .coin-card:hover {
+      transform: scale(1.08);
     }
 
-    .result {
-      font-size: 1.2rem;
-      font-weight: bold;
-      margin-top: 15px;
-      min-height: 1.6em;
+    .c-500 { width: 62px; height: 62px; background: radial-gradient(circle at 35% 35%, #f1f5f9, #94a3b8); color: #1e293b; border: 2px solid #cbd5e1; font-size: 0.95rem; }
+    .c-100 { width: 54px; height: 54px; background: radial-gradient(circle at 35% 35%, #f1f5f9, #94a3b8); color: #1e293b; border: 2px solid #cbd5e1; font-size: 0.85rem; }
+    .c-50  { width: 46px; height: 46px; background: radial-gradient(circle at 35% 35%, #f1f5f9, #94a3b8); color: #1e293b; border: 2px solid #cbd5e1; font-size: 0.8rem; }
+    .c-10  { width: 40px; height: 40px; background: radial-gradient(circle at 35% 35%, #fed7aa, #c2410c); color: #431407; border: 2px solid #fb923c; font-size: 0.75rem; }
+
+    /* Numpad Key active press animation */
+    .numpad-btn {
+      touch-action: manipulation;
+      transition: all 0.08s ease;
     }
-    .correct { color: #2e7d32; }
-    .incorrect { color: #c62828; }
+    .numpad-btn:active {
+      transform: scale(0.92);
+      opacity: 0.85;
+    }
+
+    /* Pulse animation for result status */
+    @keyframes bounce-short {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+    .animate-bounce-short {
+      animation: bounce-short 0.4s ease infinite;
+    }
   </style>
 </head>
-<body>
+<body class="bg-slate-100 min-h-screen flex flex-col items-center justify-between p-2 sm:p-4">
 
-  <div class="card">
-    <h1>💸 한국 돈 세기 퀴즈</h1>
+  <div class="w-full max-w-md sm:max-w-xl bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col border border-slate-200">
+    
+    <!-- App Header -->
+    <header class="bg-indigo-600 text-white p-3 sm:p-4 text-center relative shadow-sm">
+      <h1 class="text-xl sm:text-2xl font-black tracking-tight flex items-center justify-center gap-2">
+        <i class="fa-solid me-1 fa-coins text-yellow-300"></i> 한국 돈 세기 퀴즈
+      </h1>
+      <p class="text-xs sm:text-sm text-indigo-100 mt-1 opacity-90">지폐와 동전을 보고 총액을 맞춰보세요!</p>
+    </header>
 
-    <!-- 난이도 선택 영역 -->
-    <div class="difficulty-container">
-      <button class="diff-btn active" onclick="setDifficulty('easy')">초급</button>
-      <button class="diff-btn" onclick="setDifficulty('medium')">중급</button>
-      <button class="diff-btn" onclick="setDifficulty('hard')">고급</button>
+    <div class="p-3 sm:p-5 flex-1 flex flex-col justify-between gap-3">
+
+      <!-- Difficulty Selector -->
+      <div class="flex justify-center bg-slate-100 p-1.5 rounded-xl gap-1 border border-slate-200">
+        <button id="btn-easy" onclick="setDifficulty('easy')" class="flex-1 py-1.5 sm:py-2 text-xs sm:text-sm font-bold rounded-lg transition-all bg-indigo-600 text-white shadow-sm">
+          🌱 초급
+        </button>
+        <button id="btn-medium" onclick="setDifficulty('medium')" class="flex-1 py-1.5 sm:py-2 text-xs sm:text-sm font-bold rounded-lg transition-all text-slate-600 hover:bg-slate-200">
+          🌿 중급
+        </button>
+        <button id="btn-hard" onclick="setDifficulty('hard')" class="flex-1 py-1.5 sm:py-2 text-xs sm:text-sm font-bold rounded-lg transition-all text-slate-600 hover:bg-slate-200">
+          🌳 고급
+        </button>
+      </div>
+
+      <!-- Money Canvas Area -->
+      <div class="relative bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-3 sm:p-4 min-h-[190px] sm:min-h-[220px] flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 overflow-y-auto max-h-[260px]">
+        <div id="money-display" class="flex flex-wrap items-center justify-center gap-2 sm:gap-3 w-full">
+          <!-- Money elements inserted dynamically -->
+        </div>
+      </div>
+
+      <!-- Result Feedback Message -->
+      <div id="result-message" class="text-center font-extrabold text-sm sm:text-base min-h-[24px] transition-all flex items-center justify-center gap-2">
+        <span class="text-slate-500 font-normal text-xs sm:text-sm">버튼으로 금액을 입력하고 [확인]을 누르세요.</span>
+      </div>
+
+      <!-- Custom Keypad Display & Controls -->
+      <div class="space-y-2 bg-slate-50 p-2.5 sm:p-3 rounded-xl border border-slate-200 shadow-inner">
+        
+        <!-- Input Display Field (Read-only to prevent OS Keyboard popup) -->
+        <div class="relative flex items-center">
+          <div id="input-display" class="w-full bg-white border-2 border-indigo-400 rounded-xl py-2 px-4 text-right text-2xl sm:text-3xl font-black text-slate-800 shadow-sm min-h-[50px] flex items-center justify-end tracking-wide">
+            0
+          </div>
+          <span class="absolute right-3 text-lg font-bold text-slate-400 pointer-events-none">원</span>
+        </div>
+
+        <!-- On-screen Numpad Buttons (Compact 2-Row & Grid Layout) -->
+        <div class="grid grid-cols-6 gap-1.5 text-center pt-1">
+          <!-- Row 1: Numbers 1-5 -->
+          <button onclick="appendNum('1')" class="numpad-btn col-span-1 bg-white hover:bg-slate-100 text-slate-800 text-lg sm:text-xl font-black py-2.5 rounded-lg border border-slate-200 shadow-sm">1</button>
+          <button onclick="appendNum('2')" class="numpad-btn col-span-1 bg-white hover:bg-slate-100 text-slate-800 text-lg sm:text-xl font-black py-2.5 rounded-lg border border-slate-200 shadow-sm">2</button>
+          <button onclick="appendNum('3')" class="numpad-btn col-span-1 bg-white hover:bg-slate-100 text-slate-800 text-lg sm:text-xl font-black py-2.5 rounded-lg border border-slate-200 shadow-sm">3</button>
+          <button onclick="appendNum('4')" class="numpad-btn col-span-1 bg-white hover:bg-slate-100 text-slate-800 text-lg sm:text-xl font-black py-2.5 rounded-lg border border-slate-200 shadow-sm">4</button>
+          <button onclick="appendNum('5')" class="numpad-btn col-span-1 bg-white hover:bg-slate-100 text-slate-800 text-lg sm:text-xl font-black py-2.5 rounded-lg border border-slate-200 shadow-sm">5</button>
+          <button onclick="deleteLast()" class="numpad-btn col-span-1 bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold py-2.5 rounded-lg border border-amber-300 flex items-center justify-center text-base" title="하나 지우기">
+            <i class="fa-solid fa-delete-left"></i>
+          </button>
+
+          <!-- Row 2: Numbers 6-0 -->
+          <button onclick="appendNum('6')" class="numpad-btn col-span-1 bg-white hover:bg-slate-100 text-slate-800 text-lg sm:text-xl font-black py-2.5 rounded-lg border border-slate-200 shadow-sm">6</button>
+          <button onclick="appendNum('7')" class="numpad-btn col-span-1 bg-white hover:bg-slate-100 text-slate-800 text-lg sm:text-xl font-black py-2.5 rounded-lg border border-slate-200 shadow-sm">7</button>
+          <button onclick="appendNum('8')" class="numpad-btn col-span-1 bg-white hover:bg-slate-100 text-slate-800 text-lg sm:text-xl font-black py-2.5 rounded-lg border border-slate-200 shadow-sm">8</button>
+          <button onclick="appendNum('9')" class="numpad-btn col-span-1 bg-white hover:bg-slate-100 text-slate-800 text-lg sm:text-xl font-black py-2.5 rounded-lg border border-slate-200 shadow-sm">9</button>
+          <button onclick="appendNum('0')" class="numpad-btn col-span-1 bg-white hover:bg-slate-100 text-slate-800 text-lg sm:text-xl font-black py-2.5 rounded-lg border border-slate-200 shadow-sm">0</button>
+          <button onclick="clearAll()" class="numpad-btn col-span-1 bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold py-2.5 rounded-lg border border-rose-300 flex items-center justify-center text-xs" title="전체 지우기">
+            C
+          </button>
+        </div>
+
+        <!-- Quick 00 / 000 & Action Controls -->
+        <div class="grid grid-cols-4 gap-1.5 pt-1">
+          <button onclick="appendNum('00')" class="numpad-btn col-span-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2 rounded-lg text-sm">00</button>
+          <button onclick="appendNum('000')" class="numpad-btn col-span-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2 rounded-lg text-sm">000</button>
+          <button onclick="checkAnswer()" class="numpad-btn col-span-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-extrabold py-2 rounded-lg shadow-md flex items-center justify-center gap-1 text-base">
+            <i class="fa-solid fa-check"></i> 확인
+          </button>
+        </div>
+
+      </div>
+
     </div>
 
-    <!-- 돈이 뿌려질 영역 -->
-    <div id="money-display" class="money-container"></div>
+    <!-- Footer Controls -->
+    <footer class="bg-slate-100 border-t border-slate-200 p-3 flex items-center justify-between text-xs text-slate-600">
+      <button onclick="toggleSound()" id="sound-btn" class="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-lg border border-slate-300 shadow-sm hover:bg-slate-50 font-medium">
+        <i class="fa-solid fa-volume-high text-indigo-600" id="sound-icon"></i> <span id="sound-text">음성 켜짐</span>
+      </button>
+      <button onclick="generateQuestion()" class="flex items-center gap-1 bg-slate-800 hover:bg-slate-900 text-white px-3 py-1.5 rounded-lg font-bold shadow-sm">
+        <i class="fa-solid fa-rotate-right text-xs"></i> 새 문제
+      </button>
+    </footer>
 
-    <!-- 정답 입력창 및 버튼 -->
-    <div class="input-section">
-      <input type="number" id="user-answer" placeholder="금액 입력 (원)" onkeydown="if(event.key==='Enter') checkAnswer()">
-      <button class="action-btn" onclick="checkAnswer()">확인</button>
-    </div>
-
-    <!-- 결과 메시지 -->
-    <div id="result-message" class="result"></div>
   </div>
 
   <script>
-    // 전체 화폐 단위
+    // Korean Currency Units Definition
     const UNITS = [
-      { value: 50000, name: "50,000원", class: "b-50000", type: "bill" },
-      { value: 10000, name: "10,000원", class: "b-10000", type: "bill" },
-      { value: 5000,  name: "5,000원",  class: "b-5000",  type: "bill" },
-      { value: 1000,  name: "1,000원",  class: "b-1000",  type: "bill" },
-      { value: 500,   name: "500원",    class: "c-500",   type: "coin" },
-      { value: 100,   name: "100원",    class: "c-100",   type: "coin" },
-      { value: 50,    name: "50원",     class: "c-50",    type: "coin" },
-      { value: 10,    name: "10원",     class: "c-10",    type: "coin" }
+      { value: 50000, name: "5만원", class: "b-50000", type: "bill", width: "w-24 sm:w-28", height: "h-12 sm:h-14" },
+      { value: 10000, name: "1만원", class: "b-10000", type: "bill", width: "w-24 sm:w-28", height: "h-12 sm:h-14" },
+      { value: 5000,  name: "5천원", class: "b-5000",  type: "bill", width: "w-22 sm:w-24", height: "h-11 sm:h-12" },
+      { value: 1000,  name: "1천원", class: "b-1000",  type: "bill", width: "w-22 sm:w-24", height: "h-11 sm:h-12" },
+      { value: 500,   name: "500",   class: "c-500",   type: "coin" },
+      { value: 100,   name: "100",   class: "c-100",   type: "coin" },
+      { value: 50,    name: "50",    class: "c-50",    type: "coin" },
+      { value: 10,    name: "10",    class: "c-10",    type: "coin" }
     ];
 
     let currentDifficulty = 'easy';
     let totalAmount = 0;
+    let userInputRaw = "";
+    let soundEnabled = true;
 
-    // 난이도 설정 함수
-    function setDifficulty(level) {
-      currentDifficulty = level;
-      
-      // UI 버튼 활성화 변경
-      const buttons = document.querySelectorAll('.diff-btn');
-      buttons.forEach(btn => btn.classList.remove('active'));
-      event.target.classList.add('active');
-
-      generateQuestion();
-    }
-
-    // TTS(음성 출력) 함수
+    // TTS Setup
     function speakText(text) {
+      if (!soundEnabled) return;
       if ('speechSynthesis' in window) {
-        // 이전 음성 중단
-        window.speechSynthesis.cancel();
-
+        window.speechSynthesis.cancel(); // Stop any overlapping voice
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'ko-KR';
-        utterance.rate = 0.9; // 약간 천천히 읽기
+        utterance.rate = 0.95;
         window.speechSynthesis.speak(utterance);
       }
     }
 
-    // 문제 생성 함수
+    // Toggle Sound TTS On/Off
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      const icon = document.getElementById("sound-icon");
+      const text = document.getElementById("sound-text");
+      
+      if (soundEnabled) {
+        icon.className = "fa-solid fa-volume-high text-indigo-600";
+        text.innerText = "음성 켜짐";
+      } else {
+        icon.className = "fa-solid fa-volume-xmark text-slate-400";
+        text.innerText = "음성 끄기";
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      }
+    }
+
+    // Numpad Logic
+    function updateDisplay() {
+      const display = document.getElementById("input-display");
+      if (!userInputRaw || userInputRaw === "0") {
+        userInputRaw = "";
+        display.innerText = "0";
+        display.classList.add("text-slate-400");
+        display.classList.remove("text-indigo-600");
+      } else {
+        const formatted = parseInt(userInputRaw, 10).toLocaleString('ko-KR');
+        display.innerText = formatted;
+        display.classList.remove("text-slate-400");
+        display.classList.add("text-indigo-600");
+      }
+    }
+
+    function appendNum(numStr) {
+      if (userInputRaw.length >= 8) return; // limit max digits
+      if (userInputRaw === "" && (numStr === "0" || numStr === "00" || numStr === "000")) return;
+      
+      userInputRaw += numStr;
+      updateDisplay();
+    }
+
+    function deleteLast() {
+      if (userInputRaw.length > 0) {
+        userInputRaw = userInputRaw.slice(0, -1);
+      }
+      updateDisplay();
+    }
+
+    function clearAll() {
+      userInputRaw = "";
+      updateDisplay();
+    }
+
+    // Difficulty Settings
+    function setDifficulty(level) {
+      currentDifficulty = level;
+
+      // Update button styles
+      ['easy', 'medium', 'hard'].forEach(l => {
+        const btn = document.getElementById(`btn-${l}`);
+        if (l === level) {
+          btn.className = "flex-1 py-1.5 sm:py-2 text-xs sm:text-sm font-bold rounded-lg transition-all bg-indigo-600 text-white shadow-sm";
+        } else {
+          btn.className = "flex-1 py-1.5 sm:py-2 text-xs sm:text-sm font-bold rounded-lg transition-all text-slate-600 hover:bg-slate-200";
+        }
+      });
+
+      generateQuestion();
+    }
+
+    // Generate Money Question
     function generateQuestion() {
       const display = document.getElementById("money-display");
-      const input = document.getElementById("user-answer");
-      const result = document.getElementById("result-message");
+      const resultMsg = document.getElementById("result-message");
 
       display.innerHTML = "";
-      result.innerText = "";
-      input.value = "";
+      resultMsg.className = "text-center font-extrabold text-sm sm:text-base min-h-[24px] transition-all flex items-center justify-center gap-2";
+      resultMsg.innerHTML = `<span class="text-slate-500 font-normal text-xs sm:text-sm">지폐와 동전을 세어 금액을 입력해 주세요.</span>`;
+      
+      clearAll();
       totalAmount = 0;
 
       let allowedUnits = [];
       let minCount = 3;
       let maxCount = 5;
 
-      // 난이도별 화폐 범위 및 개수 세팅
       if (currentDifficulty === 'easy') {
         // 초급: 1만원, 1천원, 500원, 100원 (3~5개)
         allowedUnits = UNITS.filter(u => [10000, 1000, 500, 100].includes(u.value));
@@ -238,7 +296,7 @@
         minCount = 5;
         maxCount = 8;
       } else {
-        // 고급: 전체 화폐 단위 (7~12개)
+        // 고급: 전체 화폐 단위 포함 (7~12개)
         allowedUnits = UNITS;
         minCount = 7;
         maxCount = 12;
@@ -254,48 +312,84 @@
         totalAmount += item.value;
       }
 
-      // 화면 출력
-      selectedItems.forEach(item => {
-        const element = document.createElement("div");
-        element.classList.add(item.type, item.class);
-        element.innerText = item.name;
-        display.appendChild(element);
-      });
+      // Sort items: Highest bill value to lowest coin value for good visuals
+      selectedItems.sort((a, b) => b.value - a.value);
 
-      input.focus();
+      // Render money elements
+      selectedItems.forEach((item, index) => {
+        const wrapper = document.createElement("div");
+        
+        if (item.type === 'bill') {
+          wrapper.className = `bill-card ${item.class} ${item.width} ${item.height} rounded-lg flex flex-col justify-between p-1.5 font-black text-xs sm:text-sm tracking-tight cursor-default select-none`;
+          wrapper.innerHTML = `
+            <div class="flex justify-between items-center text-[10px] leading-none opacity-80">
+              <span>한국은행</span>
+              <span>BANK</span>
+            </div>
+            <div class="text-center font-extrabold text-sm sm:text-base tracking-wider">${item.name}</div>
+            <div class="text-right text-[9px] leading-none opacity-80">${item.value.toLocaleString()}</div>
+          `;
+        } else {
+          wrapper.className = `coin-card ${item.class} cursor-default select-none`;
+          wrapper.innerText = item.name;
+        }
+
+        display.appendChild(wrapper);
+      });
     }
 
-    // 정답 확인 함수
-    function checkAnswer() {
-      const input = document.getElementById("user-answer");
-      const result = document.getElementById("result-message");
-      const userAnswer = parseInt(input.value, 10);
+    // Convert number to Korean verbal readback (e.g. 15500 -> 1만 5천 5백원)
+    function formatKoreanMoneySpeech(num) {
+      if (num === 0) return "0원";
+      
+      let result = "";
+      const man = Math.floor(num / 10000);
+      const remainder = num % 10000;
 
-      if (isNaN(userAnswer)) {
-        result.className = "result incorrect";
-        result.innerText = "숫자를 입력해주세요!";
+      if (man > 0) {
+        result += `${man}만 `;
+      }
+      if (remainder > 0) {
+        result += `${remainder.toLocaleString()}`;
+      }
+      return result.trim() + "원";
+    }
+
+    // Check Answer
+    function checkAnswer() {
+      const resultMsg = document.getElementById("result-message");
+      const userVal = parseInt(userInputRaw || "0", 10);
+
+      if (userVal === 0) {
+        resultMsg.className = "text-center font-extrabold text-sm text-amber-600 flex items-center justify-center gap-1";
+        resultMsg.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> 금액을 먼저 입력해 주세요.`;
+        speakText("금액을 입력해 주세요.");
         return;
       }
 
-      if (userAnswer === totalAmount) {
+      if (userVal === totalAmount) {
         const formattedAmount = totalAmount.toLocaleString('ko-KR');
-        result.className = "result correct";
-        result.innerText = `🎉 정답입니다! (${formattedAmount}원)`;
+        const verbalKorean = formatKoreanMoneySpeech(totalAmount);
 
-        // TTS 읽기 수행
-        speakText(`정답입니다. 모두 ${formattedAmount}원입니다.`);
+        resultMsg.className = "text-center font-extrabold text-sm sm:text-base text-emerald-600 animate-bounce-short flex items-center justify-center gap-1.5";
+        resultMsg.innerHTML = `<i class="fa-solid fa-circle-check text-lg"></i> 정답입니다! (${formattedAmount}원)`;
 
-        // 3초 후 다음 문제로 이동
-        setTimeout(generateQuestion, 3000);
+        speakText(`정답입니다! 모두 ${verbalKorean} 입니다.`);
+
+        // Auto transition after 2.5 seconds
+        setTimeout(generateQuestion, 2800);
       } else {
-        result.className = "result incorrect";
-        result.innerText = "❌ 틀렸습니다. 다시 계산해보세요!";
-        speakText("틀렸습니다. 다시 계산해보세요.");
+        resultMsg.className = "text-center font-extrabold text-sm text-rose-600 flex items-center justify-center gap-1";
+        resultMsg.innerHTML = `<i class="fa-solid fa-circle-xmark text-lg"></i> 틀렸습니다. 다시 계산해 보세요!`;
+        
+        speakText("틀렸습니다. 다시 계산해 보세요.");
       }
     }
 
-    // 페이지 로드시 첫 문제 발생
-    window.onload = generateQuestion;
+    // Initialize on window load
+    window.onload = function() {
+      generateQuestion();
+    };
   </script>
 </body>
 </html>
