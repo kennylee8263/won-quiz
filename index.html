@@ -23,7 +23,7 @@
       padding: 30px;
       border-radius: 16px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-      max-width: 600px;
+      max-width: 650px;
       width: 100%;
       text-align: center;
     }
@@ -32,6 +32,30 @@
       color: #333;
       font-size: 1.6rem;
     }
+
+    /* 난이도 선택 버튼 */
+    .difficulty-container {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .diff-btn {
+      padding: 8px 16px;
+      font-size: 0.95rem;
+      border: 2px solid #1976d2;
+      background-color: #fff;
+      color: #1976d2;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.2s;
+    }
+    .diff-btn.active {
+      background-color: #1976d2;
+      color: white;
+    }
+
     .money-container {
       display: flex;
       flex-wrap: wrap;
@@ -43,8 +67,9 @@
       background: #fafafa;
       border: 2px dashed #e0e0e0;
       border-radius: 12px;
-      margin: 20px 0;
+      margin-bottom: 20px;
     }
+
     /* 지폐 스타일 */
     .bill {
       display: flex;
@@ -58,10 +83,10 @@
       font-size: 0.9rem;
       box-shadow: 0 2px 6px rgba(0,0,0,0.15);
     }
-    .b-50000 { background-color: #f0ac00; color: #222; } /* 5만원: 노란색 */
-    .b-10000 { background-color: #2e7d32; }            /* 1만원: 초록색 */
-    .b-5000  { background-color: #d84315; }            /* 5천원: 주황/갈색 */
-    .b-1000  { background-color: #1565c0; }            /* 1천원: 파란색 */
+    .b-50000 { background-color: #f0ac00; color: #222; }
+    .b-10000 { background-color: #2e7d32; }
+    .b-5000  { background-color: #d84315; }
+    .b-1000  { background-color: #1565c0; }
 
     /* 동전 스타일 */
     .coin {
@@ -75,7 +100,7 @@
     .c-500 { width: 52px; height: 52px; background: #cfd8dc; color: #37474f; font-size: 0.85rem; }
     .c-100 { width: 46px; height: 46px; background: #cfd8dc; color: #37474f; font-size: 0.8rem; }
     .c-50  { width: 40px; height: 40px; background: #cfd8dc; color: #37474f; font-size: 0.75rem; }
-    .c-10  { width: 34px; height: 34px; background: #d7ccc8; color: #4e342e; font-size: 0.7rem; } /* 10원: 황동색 */
+    .c-10  { width: 34px; height: 34px; background: #d7ccc8; color: #4e342e; font-size: 0.7rem; }
 
     .input-section {
       display: flex;
@@ -95,7 +120,7 @@
     input[type="number"]:focus {
       border-color: #1976d2;
     }
-    button {
+    .action-btn {
       padding: 12px 20px;
       font-size: 1rem;
       font-weight: bold;
@@ -106,9 +131,10 @@
       cursor: pointer;
       transition: background-color 0.2s;
     }
-    button:hover {
+    .action-btn:hover {
       background-color: #1565c0;
     }
+
     .result {
       font-size: 1.2rem;
       font-weight: bold;
@@ -123,7 +149,13 @@
 
   <div class="card">
     <h1>💸 한국 돈 세기 퀴즈</h1>
-    <p>화면에 보이는 지폐와 동전의 총금액은 얼마일까요?</p>
+
+    <!-- 난이도 선택 영역 -->
+    <div class="difficulty-container">
+      <button class="diff-btn active" onclick="setDifficulty('easy')">초급</button>
+      <button class="diff-btn" onclick="setDifficulty('medium')">중급</button>
+      <button class="diff-btn" onclick="setDifficulty('hard')">고급</button>
+    </div>
 
     <!-- 돈이 뿌려질 영역 -->
     <div id="money-display" class="money-container"></div>
@@ -131,7 +163,7 @@
     <!-- 정답 입력창 및 버튼 -->
     <div class="input-section">
       <input type="number" id="user-answer" placeholder="금액 입력 (원)" onkeydown="if(event.key==='Enter') checkAnswer()">
-      <button onclick="checkAnswer()">확인</button>
+      <button class="action-btn" onclick="checkAnswer()">확인</button>
     </div>
 
     <!-- 결과 메시지 -->
@@ -139,7 +171,7 @@
   </div>
 
   <script>
-    // 화폐 단위 정의 (값, CSS클래스, 타입)
+    // 전체 화폐 단위
     const UNITS = [
       { value: 50000, name: "50,000원", class: "b-50000", type: "bill" },
       { value: 10000, name: "10,000원", class: "b-10000", type: "bill" },
@@ -151,9 +183,35 @@
       { value: 10,    name: "10원",     class: "c-10",    type: "coin" }
     ];
 
+    let currentDifficulty = 'easy';
     let totalAmount = 0;
 
-    // 새로운 문제 생성 함수
+    // 난이도 설정 함수
+    function setDifficulty(level) {
+      currentDifficulty = level;
+      
+      // UI 버튼 활성화 변경
+      const buttons = document.querySelectorAll('.diff-btn');
+      buttons.forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+
+      generateQuestion();
+    }
+
+    // TTS(음성 출력) 함수
+    function speakText(text) {
+      if ('speechSynthesis' in window) {
+        // 이전 음성 중단
+        window.speechSynthesis.cancel();
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'ko-KR';
+        utterance.rate = 0.9; // 약간 천천히 읽기
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    // 문제 생성 함수
     function generateQuestion() {
       const display = document.getElementById("money-display");
       const input = document.getElementById("user-answer");
@@ -164,18 +222,39 @@
       input.value = "";
       totalAmount = 0;
 
-      // 생성할 총 화폐 개수 (5개 ~ 12개 사이)
-      const count = Math.floor(Math.random() * 8) + 5;
+      let allowedUnits = [];
+      let minCount = 3;
+      let maxCount = 5;
+
+      // 난이도별 화폐 범위 및 개수 세팅
+      if (currentDifficulty === 'easy') {
+        // 초급: 1만원, 1천원, 500원, 100원 (3~5개)
+        allowedUnits = UNITS.filter(u => [10000, 1000, 500, 100].includes(u.value));
+        minCount = 3;
+        maxCount = 5;
+      } else if (currentDifficulty === 'medium') {
+        // 중급: 5만원, 1만원, 5천원, 1천원, 500원, 100원 (5~8개)
+        allowedUnits = UNITS.filter(u => [50000, 10000, 5000, 1000, 500, 100].includes(u.value));
+        minCount = 5;
+        maxCount = 8;
+      } else {
+        // 고급: 전체 화폐 단위 (7~12개)
+        allowedUnits = UNITS;
+        minCount = 7;
+        maxCount = 12;
+      }
+
+      const count = Math.floor(Math.random() * (maxCount - minCount + 1)) + minCount;
       const selectedItems = [];
 
       for (let i = 0; i < count; i++) {
-        const randomIndex = Math.floor(Math.random() * UNITS.length);
-        const item = UNITS[randomIndex];
+        const randomIndex = Math.floor(Math.random() * allowedUnits.length);
+        const item = allowedUnits[randomIndex];
         selectedItems.push(item);
         totalAmount += item.value;
       }
 
-      // 화면에 시각적으로 표시
+      // 화면 출력
       selectedItems.forEach(item => {
         const element = document.createElement("div");
         element.classList.add(item.type, item.class);
@@ -199,16 +278,23 @@
       }
 
       if (userAnswer === totalAmount) {
+        const formattedAmount = totalAmount.toLocaleString('ko-KR');
         result.className = "result correct";
-        result.innerText = "🎉 정답입니다! 2초 뒤 다음 문제로 이동합니다.";
-        setTimeout(generateQuestion, 2000);
+        result.innerText = `🎉 정답입니다! (${formattedAmount}원)`;
+
+        // TTS 읽기 수행
+        speakText(`정답입니다. 모두 ${formattedAmount}원입니다.`);
+
+        // 3초 후 다음 문제로 이동
+        setTimeout(generateQuestion, 3000);
       } else {
         result.className = "result incorrect";
-        result.innerText = `❌ 틀렸습니다. 다시 계산해보세요!`;
+        result.innerText = "❌ 틀렸습니다. 다시 계산해보세요!";
+        speakText("틀렸습니다. 다시 계산해보세요.");
       }
     }
 
-    // 페이지 진입 시 첫 문제 생성
+    // 페이지 로드시 첫 문제 발생
     window.onload = generateQuestion;
   </script>
 </body>
