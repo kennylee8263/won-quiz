@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>한국 돈 세기 퀴즈</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+    }
+    body {
+      background-color: #f4f6f8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+    .card {
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      max-width: 600px;
+      width: 100%;
+      text-align: center;
+    }
+    h1 {
+      margin-top: 0;
+      color: #333;
+      font-size: 1.6rem;
+    }
+    .money-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      align-items: center;
+      min-height: 220px;
+      padding: 20px;
+      background: #fafafa;
+      border: 2px dashed #e0e0e0;
+      border-radius: 12px;
+      margin: 20px 0;
+    }
+    /* 지폐 스타일 */
+    .bill {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 110px;
+      height: 55px;
+      border-radius: 6px;
+      color: #fff;
+      font-weight: bold;
+      font-size: 0.9rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+    .b-50000 { background-color: #f0ac00; color: #222; } /* 5만원: 노란색 */
+    .b-10000 { background-color: #2e7d32; }            /* 1만원: 초록색 */
+    .b-5000  { background-color: #d84315; }            /* 5천원: 주황/갈색 */
+    .b-1000  { background-color: #1565c0; }            /* 1천원: 파란색 */
+
+    /* 동전 스타일 */
+    .coin {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 50%;
+      font-weight: bold;
+      box-shadow: inset -2px -2px 4px rgba(0,0,0,0.2), 0 2px 4px rgba(0,0,0,0.15);
+    }
+    .c-500 { width: 52px; height: 52px; background: #cfd8dc; color: #37474f; font-size: 0.85rem; }
+    .c-100 { width: 46px; height: 46px; background: #cfd8dc; color: #37474f; font-size: 0.8rem; }
+    .c-50  { width: 40px; height: 40px; background: #cfd8dc; color: #37474f; font-size: 0.75rem; }
+    .c-10  { width: 34px; height: 34px; background: #d7ccc8; color: #4e342e; font-size: 0.7rem; } /* 10원: 황동색 */
+
+    .input-section {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 15px;
+    }
+    input[type="number"] {
+      padding: 12px;
+      font-size: 1.1rem;
+      width: 180px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      text-align: right;
+      outline: none;
+    }
+    input[type="number"]:focus {
+      border-color: #1976d2;
+    }
+    button {
+      padding: 12px 20px;
+      font-size: 1rem;
+      font-weight: bold;
+      color: white;
+      background-color: #1976d2;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    button:hover {
+      background-color: #1565c0;
+    }
+    .result {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-top: 15px;
+      min-height: 1.6em;
+    }
+    .correct { color: #2e7d32; }
+    .incorrect { color: #c62828; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>💸 한국 돈 세기 퀴즈</h1>
+    <p>화면에 보이는 지폐와 동전의 총금액은 얼마일까요?</p>
+
+    <!-- 돈이 뿌려질 영역 -->
+    <div id="money-display" class="money-container"></div>
+
+    <!-- 정답 입력창 및 버튼 -->
+    <div class="input-section">
+      <input type="number" id="user-answer" placeholder="금액 입력 (원)" onkeydown="if(event.key==='Enter') checkAnswer()">
+      <button onclick="checkAnswer()">확인</button>
+    </div>
+
+    <!-- 결과 메시지 -->
+    <div id="result-message" class="result"></div>
+  </div>
+
+  <script>
+    // 화폐 단위 정의 (값, CSS클래스, 타입)
+    const UNITS = [
+      { value: 50000, name: "50,000원", class: "b-50000", type: "bill" },
+      { value: 10000, name: "10,000원", class: "b-10000", type: "bill" },
+      { value: 5000,  name: "5,000원",  class: "b-5000",  type: "bill" },
+      { value: 1000,  name: "1,000원",  class: "b-1000",  type: "bill" },
+      { value: 500,   name: "500원",    class: "c-500",   type: "coin" },
+      { value: 100,   name: "100원",    class: "c-100",   type: "coin" },
+      { value: 50,    name: "50원",     class: "c-50",    type: "coin" },
+      { value: 10,    name: "10원",     class: "c-10",    type: "coin" }
+    ];
+
+    let totalAmount = 0;
+
+    // 새로운 문제 생성 함수
+    function generateQuestion() {
+      const display = document.getElementById("money-display");
+      const input = document.getElementById("user-answer");
+      const result = document.getElementById("result-message");
+
+      display.innerHTML = "";
+      result.innerText = "";
+      input.value = "";
+      totalAmount = 0;
+
+      // 생성할 총 화폐 개수 (5개 ~ 12개 사이)
+      const count = Math.floor(Math.random() * 8) + 5;
+      const selectedItems = [];
+
+      for (let i = 0; i < count; i++) {
+        const randomIndex = Math.floor(Math.random() * UNITS.length);
+        const item = UNITS[randomIndex];
+        selectedItems.push(item);
+        totalAmount += item.value;
+      }
+
+      // 화면에 시각적으로 표시
+      selectedItems.forEach(item => {
+        const element = document.createElement("div");
+        element.classList.add(item.type, item.class);
+        element.innerText = item.name;
+        display.appendChild(element);
+      });
+
+      input.focus();
+    }
+
+    // 정답 확인 함수
+    function checkAnswer() {
+      const input = document.getElementById("user-answer");
+      const result = document.getElementById("result-message");
+      const userAnswer = parseInt(input.value, 10);
+
+      if (isNaN(userAnswer)) {
+        result.className = "result incorrect";
+        result.innerText = "숫자를 입력해주세요!";
+        return;
+      }
+
+      if (userAnswer === totalAmount) {
+        result.className = "result correct";
+        result.innerText = "🎉 정답입니다! 2초 뒤 다음 문제로 이동합니다.";
+        setTimeout(generateQuestion, 2000);
+      } else {
+        result.className = "result incorrect";
+        result.innerText = `❌ 틀렸습니다. 다시 계산해보세요!`;
+      }
+    }
+
+    // 페이지 진입 시 첫 문제 생성
+    window.onload = generateQuestion;
+  </script>
+</body>
+</html>
